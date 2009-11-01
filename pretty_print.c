@@ -39,19 +39,19 @@ static const char *lookup_table[] = {"\\000", "\\001", "\\002", "\\003",
 	"\\361", "\\362", "\\363", "\\364", "\\365", "\\366", "\\367", "\\370",
 	"\\371", "\\372", "\\373", "\\374", "\\375", "\\376", "\\377"};
 
-PRETTY_PRINT_INT(char, byte, hh);
-PRETTY_PRINT_INT(short, short, h);
-PRETTY_PRINT_INT(int, int, );
-PRETTY_PRINT_INT(long, long, l);
-PRETTY_PRINT_INT(long long, long_long, ll);
+PRETTY_PRINT_INT(char, byte, hh)
+PRETTY_PRINT_INT(short, short, h)
+PRETTY_PRINT_INT(int, int, )
+PRETTY_PRINT_INT(long, long, l)
+PRETTY_PRINT_INT(long long, long_long, ll)
 
 PRETTY_PRINT(char, char_without_quotes, {
 	OUTPUT("%s", lookup_table[(unsigned char)value]);
-});
+})
 
 PRETTY_PRINT(char, char, {
 	OUTPUT("\'%s\'", lookup_table[(unsigned char)value]);
-});
+})
 
 PRETTY_PRINT(char *, string, {
 	OUTPUT("\"");
@@ -59,8 +59,8 @@ PRETTY_PRINT(char *, string, {
 		OUTPUT_CUSTOM(char_without_quotes, *value);
 	}
 	OUTPUT("\"");
-});
+})
 
 PRETTY_PRINT(void *, pointer, {
 	OUTPUT("%p", value);
-});
+})

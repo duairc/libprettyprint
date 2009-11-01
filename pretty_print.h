@@ -6,21 +6,21 @@
 #define OUTPUT(format, args...)\
 	__delta = ((xprintf_t)__xprintf)(__output, format, ## args);\
 	__result += __delta;\
-	if (__xprintf == (void *)sprintf) __output += __delta;
+	if (__xprintf == (voidfunc_t)sprintf) __output = ((char *)__output) + __delta;
 
 #define OUTPUT_CUSTOM(name, value)\
 	__delta = pretty_print_##name##_with(__xprintf, __output, value);\
 	__result += __delta;\
-	if (__xprintf == (void *)sprintf) __output += __delta;
+	if (__xprintf == (voidfunc_t)sprintf) __output = ((char *)__output) + __delta;
 
 #define PRETTY_PRINT_HEADERS(type, name)\
-	PRETTY_PRINT_HEADERS_SCALAR(type, name);\
-	PRETTY_PRINT_HEADERS_ARRAY(type, name);\
-	PRETTY_PRINT_HEADERS_NULL_ARRAY(type, name);
+	PRETTY_PRINT_HEADERS_SCALAR(type, name)\
+	PRETTY_PRINT_HEADERS_ARRAY(type, name)\
+	PRETTY_PRINT_HEADERS_NULL_ARRAY(type, name)
 
 #define PRETTY_PRINT_HEADERS_SCALAR(type, name)\
 	extern int pretty_print_##name##_size(type);\
-	extern int pretty_print_##name##_with(void *, void *, type);\
+	extern int pretty_print_##name##_with(voidfunc_t, void *, type);\
 	extern int pretty_print_##name##_to_buffer(char *, type);\
 	extern int pretty_print_##name##_to_file(FILE *, type);\
 	extern int pretty_print_##name(type);\
@@ -28,7 +28,7 @@
 
 #define PRETTY_PRINT_HEADERS_ARRAY(type, name)\
 	extern int pretty_print_##name##_array_size(int, type *);\
-	extern int pretty_print_##name##_array_with(void *, void *, int, type *);\
+	extern int pretty_print_##name##_array_with(voidfunc_t, void *, int, type *);\
 	extern int pretty_print_##name##_array_to_buffer(char *, int, type *);\
 	extern int pretty_print_##name##_array_to_file(FILE *, int, type *);\
 	extern int pretty_print_##name##_array(int, type *);\
@@ -36,33 +36,33 @@
 
 #define PRETTY_PRINT_HEADERS_NULL_ARRAY(type, name)\
 	extern int pretty_print_##name##_null_array_size(type *);\
-	extern int pretty_print_##name##_null_array_with(void *, void *, type *);\
+	extern int pretty_print_##name##_null_array_with(voidfunc_t, void *, type *);\
 	extern int pretty_print_##name##_null_array_to_buffer(char *, type *);\
 	extern int pretty_print_##name##_null_array_to_file(FILE *, type *);\
 	extern int pretty_print_##name##_null_array(type *);\
 	extern char *pretty_print_##name##_null_array_as_string(type *);
 
 #define PRETTY_PRINT_INT_HEADERS(type, name)\
-	PRETTY_PRINT_HEADERS(type, name);\
-	PRETTY_PRINT_HEADERS(unsigned type, unsigned_##name);\
-	PRETTY_PRINT_HEADERS(unsigned type, name##_hex);
+	PRETTY_PRINT_HEADERS(type, name)\
+	PRETTY_PRINT_HEADERS(unsigned type, unsigned_##name)\
+	PRETTY_PRINT_HEADERS(unsigned type, name##_hex)
 
 #define PRETTY_PRINT(type, name, code)\
-	PRETTY_PRINT_DEFINE_WITH(type, name, code);\
-	PRETTY_PRINT_DEFINE_SIZE(type, name);\
-	PRETTY_PRINT_SCALAR(type, name);\
-	PRETTY_PRINT_ARRAY(type, name);\
-	PRETTY_PRINT_NULL_ARRAY(type, name);
+	PRETTY_PRINT_DEFINE_WITH(type, name, code)\
+	PRETTY_PRINT_DEFINE_SIZE(type, name)\
+	PRETTY_PRINT_SCALAR(type, name)\
+	PRETTY_PRINT_ARRAY(type, name)\
+	PRETTY_PRINT_NULL_ARRAY(type, name)
 
 #define PRETTY_PRINT_WITH_CUSTOM_SIZE(type, name, code)\
-	PRETTY_PRINT_DEFINE_WITH(type, name, code);\
-	int pretty_print_##name##_size(type);\
-	PRETTY_PRINT_SCALAR(type, name);\
-	PRETTY_PRINT_ARRAY(type, name);\
-	PRETTY_PRINT_NULL_ARRAY(type, name);
+	PRETTY_PRINT_DEFINE_WITH(type, name, code)\
+	int pretty_print_##name##_size(type)\
+	PRETTY_PRINT_SCALAR(type, name)\
+	PRETTY_PRINT_ARRAY(type, name)\
+	PRETTY_PRINT_NULL_ARRAY(type, name)
 
 #define PRETTY_PRINT_DEFINE_WITH(type, name, code)\
-	int pretty_print_##name##_with(void *__xprintf, void *__output, type value) {\
+	int pretty_print_##name##_with(voidfunc_t __xprintf, void *__output, type value) {\
 		int __result = 0, __delta;\
 		code;\
 		return __result;\
@@ -72,17 +72,17 @@
 	int pretty_print_##name##_size(type value) {\
 		int result;\
 		initialize_stdnull();\
-		result = pretty_print_##name##_with(fprintf, stdnull, value);\
+		result = pretty_print_##name##_with((voidfunc_t)fprintf, stdnull, value);\
 		return result;\
 	}
 
 #define PRETTY_PRINT_SCALAR(type, name)\
 	PRETTY_PRINT_HEADERS_SCALAR(type, name)\
 	int pretty_print_##name##_to_buffer(char *buffer, type value) {\
-		return pretty_print_##name##_with(sprintf, buffer, value);\
+		return pretty_print_##name##_with((voidfunc_t)sprintf, buffer, value);\
 	}\
 	int pretty_print_##name##_to_file(FILE *file, type value) {\
-		return pretty_print_##name##_with(fprintf, file, value);\
+		return pretty_print_##name##_with((voidfunc_t)fprintf, file, value);\
 	}\
 	int pretty_print_##name(type value) {\
 		return pretty_print_##name##_to_file(stdout, value);\
@@ -105,7 +105,7 @@
 		}\
 		return result;\
 	}\
-	int pretty_print_##name##_array_with(void * __xprintf, void *__output, int size, type *array) {\
+	int pretty_print_##name##_array_with(voidfunc_t __xprintf, void *__output, int size, type *array) {\
 		int __result = 0, __delta, i;\
 		OUTPUT("[");\
 		for (i = 0; i < size; i++) {\
@@ -118,10 +118,10 @@
 		return __result;\
 	}\
 	int pretty_print_##name##_array_to_buffer(char *buffer, int size, type *array) {\
-		return pretty_print_##name##_array_with(sprintf, buffer, size, array);\
+		return pretty_print_##name##_array_with((voidfunc_t)sprintf, buffer, size, array);\
 	}\
 	int pretty_print_##name##_array_to_file(FILE *file, int size, type *array) {\
-		return pretty_print_##name##_array_with(fprintf, file, size, array);\
+		return pretty_print_##name##_array_with((voidfunc_t)fprintf, file, size, array);\
 	}\
 	int pretty_print_##name##_array(int size, type *array) {\
 		return pretty_print_##name##_array_to_file(stdout, size, array);\
@@ -144,7 +144,7 @@
 		}\
 		return result;\
 	}\
-	int pretty_print_##name##_null_array_with(void * __xprintf, void *__output, type *array) {\
+	int pretty_print_##name##_null_array_with(voidfunc_t __xprintf, void *__output, type *array) {\
 		int __result = 0, __delta, i;\
 		OUTPUT("[");\
 		for (i = 0; array[i] != (type)((uintptr_t)NULL); i++) {\
@@ -156,30 +156,31 @@
 		OUTPUT("]");\
 		return __result;\
 	}\
-	PRETTY_PRINT_SCALAR(type *, name##_null_array);
+	PRETTY_PRINT_SCALAR(type *, name##_null_array)
 
 #define PRETTY_PRINT_INT(type, name, format)\
 	PRETTY_PRINT(type, name, {\
 		OUTPUT("%" #format "d", value);\
-	});\
+	})\
 	PRETTY_PRINT(unsigned type, unsigned_##name, {\
 		OUTPUT("%" #format "ud", value);\
-	});\
+	})\
 	PRETTY_PRINT(unsigned type, name##_hex, {\
 		OUTPUT("%" #format "ux", value);\
-	});\
+	})\
 
 typedef int (*xprintf_t)(void *, char *, ...);
+typedef void (*voidfunc_t)(void);
 
 extern FILE *stdnull;
 extern void initialize_stdnull();
 
-PRETTY_PRINT_INT_HEADERS(char, byte);
-PRETTY_PRINT_INT_HEADERS(short, short);
-PRETTY_PRINT_INT_HEADERS(int, int);
-PRETTY_PRINT_INT_HEADERS(long, long);
-PRETTY_PRINT_INT_HEADERS(long long, long_long);
+PRETTY_PRINT_INT_HEADERS(char, byte)
+PRETTY_PRINT_INT_HEADERS(short, short)
+PRETTY_PRINT_INT_HEADERS(int, int)
+PRETTY_PRINT_INT_HEADERS(long, long)
+PRETTY_PRINT_INT_HEADERS(long long, long_long)
 
-PRETTY_PRINT_HEADERS(void *, pointer);
-PRETTY_PRINT_HEADERS(char, char);
-PRETTY_PRINT_HEADERS(char *, string);
+PRETTY_PRINT_HEADERS(void *, pointer)
+PRETTY_PRINT_HEADERS(char, char)
+PRETTY_PRINT_HEADERS(char *, string)
