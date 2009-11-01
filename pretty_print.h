@@ -63,7 +63,7 @@
 
 #define PRETTY_PRINT_DEFINE_WITH(type, name, code)\
 	int pretty_print_##name##_with(void *__xprintf, void *__output, type value) {\
-		int __result, __delta;\
+		int __result = 0, __delta;\
 		code;\
 		return __result;\
 	}
@@ -106,7 +106,7 @@
 		return result;\
 	}\
 	int pretty_print_##name##_array_with(void * __xprintf, void *__output, int size, type *array) {\
-		int __result, __delta, i;\
+		int __result = 0, __delta, i;\
 		OUTPUT("[");\
 		for (i = 0; i < size; i++) {\
 			OUTPUT_CUSTOM(name, array[i]);\
@@ -145,7 +145,7 @@
 		return result;\
 	}\
 	int pretty_print_##name##_null_array_with(void * __xprintf, void *__output, type *array) {\
-		int __result, __delta, i;\
+		int __result = 0, __delta, i;\
 		OUTPUT("[");\
 		for (i = 0; array[i] != (type)((uintptr_t)NULL); i++) {\
 			OUTPUT_CUSTOM(name, array[i]);\
