@@ -27,12 +27,12 @@
 	extern char *pretty_print_##name##_as_string(type);
 
 #define PRETTY_PRINT_HEADERS_ARRAY(type, name)\
-	extern int pretty_print_##name##_array_size(int, type *);\
-	extern int pretty_print_##name##_array_with(voidfunc_t, void *, int, type *);\
-	extern int pretty_print_##name##_array_to_buffer(char *, int, type *);\
-	extern int pretty_print_##name##_array_to_file(FILE *, int, type *);\
-	extern int pretty_print_##name##_array(int, type *);\
-	extern char *pretty_print_##name##_array_as_string(int, type *);
+	extern int pretty_print_##name##_array_size(size_t, type *);\
+	extern int pretty_print_##name##_array_with(voidfunc_t, void *, size_t, type *);\
+	extern int pretty_print_##name##_array_to_buffer(char *, size_t, type *);\
+	extern int pretty_print_##name##_array_to_file(FILE *, size_t, type *);\
+	extern int pretty_print_##name##_array(size_t, type *);\
+	extern char *pretty_print_##name##_array_as_string(size_t, type *);
 
 #define PRETTY_PRINT_HEADERS_NULL_ARRAY(type, name)\
 	extern int pretty_print_##name##_null_array_size(type *);\
@@ -70,7 +70,7 @@
 
 #define PRETTY_PRINT_DEFINE_SIZE(type, name)\
 	int pretty_print_##name##_size(type value) {\
-		int result;\
+		size_t result;\
 		initialize_stdnull();\
 		result = pretty_print_##name##_with((voidfunc_t)fprintf, stdnull, value);\
 		return result;\
@@ -88,7 +88,7 @@
 		return pretty_print_##name##_to_file(stdout, value);\
 	}\
 	char *pretty_print_##name##_as_string(type value) {\
-		int size = pretty_print_##name##_size(value);\
+		size_t size = pretty_print_##name##_size(value);\
 		char *buffer = malloc(sizeof(char) * (size + 1));\
 		pretty_print_##name##_to_buffer(buffer, value);\
 		buffer[size] = 0;\
@@ -96,17 +96,19 @@
 	}\
 
 #define PRETTY_PRINT_ARRAY(type, name)\
-	int pretty_print_##name##_array_size(int size, type *array) {\
+	int pretty_print_##name##_array_size(size_t size, type *array) {\
+		int result;\
+		size_t i;\
 		if (!size) return 2;\
-		int i, result;\
 		result = 0;\
 		for (i = 0; i < size; i++) {\
 			result += pretty_print_##name##_size(array[i]) + 2;\
 		}\
 		return result;\
 	}\
-	int pretty_print_##name##_array_with(voidfunc_t __xprintf, void *__output, int size, type *array) {\
-		int __result = 0, __delta, i;\
+	int pretty_print_##name##_array_with(voidfunc_t __xprintf, void *__output, size_t size, type *array) {\
+		int __result = 0, __delta;\
+		size_t i;\
 		OUTPUT("[");\
 		for (i = 0; i < size; i++) {\
 			OUTPUT_CUSTOM(name, array[i]);\
@@ -117,16 +119,16 @@
 		OUTPUT("]");\
 		return __result;\
 	}\
-	int pretty_print_##name##_array_to_buffer(char *buffer, int size, type *array) {\
+	int pretty_print_##name##_array_to_buffer(char *buffer, size_t size, type *array) {\
 		return pretty_print_##name##_array_with((voidfunc_t)sprintf, buffer, size, array);\
 	}\
-	int pretty_print_##name##_array_to_file(FILE *file, int size, type *array) {\
+	int pretty_print_##name##_array_to_file(FILE *file, size_t size, type *array) {\
 		return pretty_print_##name##_array_with((voidfunc_t)fprintf, file, size, array);\
 	}\
-	int pretty_print_##name##_array(int size, type *array) {\
+	int pretty_print_##name##_array(size_t size, type *array) {\
 		return pretty_print_##name##_array_to_file(stdout, size, array);\
 	}\
-	char *pretty_print_##name##_array_as_string(int size, type *array) {\
+	char *pretty_print_##name##_array_as_string(size_t size, type *array) {\
 		int length = pretty_print_##name##_array_size(size, array);\
 		char *buffer = malloc(sizeof(char) * (length + 1)); \
 		pretty_print_##name##_array_to_buffer(buffer, size, array);\
@@ -137,19 +139,19 @@
 #define PRETTY_PRINT_NULL_ARRAY(type, name)\
 	int pretty_print_##name##_null_array_size(type *array) {\
 		if (*array == (type)((uintptr_t)NULL)) return 2;\
-		int i, result;\
+		int result;\
 		result = 0;\
-		for (i = 0; array[i] != (type)((uintptr_t)NULL); i++) {\
-			result += pretty_print_##name##_size(array[i]) + 2;\
+		for (; *array != (type)((uintptr_t)NULL); array++) {\
+			result += pretty_print_##name##_size(*array) + 2;\
 		}\
 		return result;\
 	}\
 	int pretty_print_##name##_null_array_with(voidfunc_t __xprintf, void *__output, type *array) {\
-		int __result = 0, __delta, i;\
+		int __result = 0, __delta;\
 		OUTPUT("[");\
-		for (i = 0; array[i] != (type)((uintptr_t)NULL); i++) {\
-			OUTPUT_CUSTOM(name, array[i]);\
-			if (array[i + 1] != (type)((uintptr_t)NULL)) {\
+		for (; *array != (type)((uintptr_t)NULL); array++) {\
+			OUTPUT_CUSTOM(name, *array);\
+			if (*(array + 1) != (type)((uintptr_t)NULL)) {\
 				OUTPUT(", ");\
 			}\
 		}\
