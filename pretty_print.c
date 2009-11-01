@@ -64,16 +64,3 @@ PRETTY_PRINT(char *, string, {
 PRETTY_PRINT(void *, pointer, {
 	OUTPUT("%p", value);
 });
-
-PRETTY_PRINT_NULL_ARRAY(char *, char_null_array);
-
-int main() {
-	char *x[] = {"hello", "world", "some", "test", "strings", NULL};
-	printf("%d\n", pretty_print_char_null_array_null_array_size(x));
-	pretty_print_char_null_array_null_array(x);
-	char *string = pretty_print_string_null_array_as_string(x);
-	printf("\n%s\n", string);
-	pretty_print_pointer_null_array((void **)x);
-	printf("\n");
-	return 0;
-}
